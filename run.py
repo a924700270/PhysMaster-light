@@ -57,6 +57,7 @@ def clarify_query(query_path: str, clr_cfg) -> Dict[str, Any]:
     path = query_path
     with open(path, 'r', encoding='utf-8') as file:
         content = file.read()
+    print(f"[CLR] Clarifying query from: {path}")
 
     clr = Clarifier(clr_cfg)
     structured_problem = clr.run(content)
@@ -71,7 +72,8 @@ def clarify_query(query_path: str, clr_cfg) -> Dict[str, Any]:
 
     with open(task_dir / "contract.json", "w", encoding="utf-8") as f:
         json.dump(structured_problem, f, ensure_ascii=False, indent=2)
-
+    print(f"[CLR] Structured problem saved to: {task_dir / 'contract.json'}")
+    
     return structured_problem, task_dir
 
 

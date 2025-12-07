@@ -102,7 +102,7 @@ class Theoretician:
         )
 
         if markdown_writer:
-            markdown_writer.write_to_markdown( prompt + "\n", mode='theoretician_response')
+            markdown_writer.write_to_markdown( response + "\n", mode='theoretician_response')
         print("========== Theoretician: Response ==========\n" + response + "\n")
 
         return response

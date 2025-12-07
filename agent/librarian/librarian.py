@@ -38,16 +38,16 @@ def run_pasax_for_kb(
         print("[KB] knowledge_base.enabled = false，跳过 PasaX")
         return None
 
-    parax_cfg = kb_cfg.get("pasax", {}) or {}
+    pasax_cfg = kb_cfg.get("pasax", {}) or {}
 
-    project_root = Path(__file__).resolve().parents[1]
+    project_root = Path(__file__).resolve().parents[2]
   
     default_root = "agent/librarian/Pasa-X-papermaster_new"
-    parax_root = (project_root / parax_cfg.get("root_path", default_root)).resolve()
-    parax_run_py = parax_root / "run.py"
+    pasax_root = (project_root / pasax_cfg.get("root_path", default_root)).resolve()
+    pasax_run_py = pasax_root / "run.py"
 
-    if not parax_run_py.exists():
-        print(f"[Main-KB] ParaX run.py 未找到：{parax_run_py}，跳过 PasaX")
+    if not pasax_run_py.exists():
+        print(f"[Main-KB] ParaX run.py 未找到：{pasax_run_py}，跳过 PasaX")
         return None
 
     structured_path = task_dir / "contract.json"
@@ -55,19 +55,19 @@ def run_pasax_for_kb(
         print(f"[Main-KB] contract.json 不存在：{structured_path}，跳过 PasaX")
         return None
     
-    parax_inputs = parax_root / "inputs&transfer"
-    parax_inputs.mkdir(parents=True, exist_ok=True)
+    pasax_inputs = pasax_root / "inputs&transfer"
+    pasax_inputs.mkdir(parents=True, exist_ok=True)
 
-    templete_json = parax_inputs / "templete.json"
+    templete_json = pasax_inputs / "templete.json"
     shutil.copy2(structured_path, templete_json)
-    print(f"[Main-KB] 已将 contract.json 拷贝到 ParaX: {templete_json}")
+    print(f"[Main-KB] 已将 contract.json 拷贝到 PasaX: {templete_json}")
 
-    parax_librarian_dir = parax_root / "librarian"
-    parax_librarian_dir.mkdir(parents=True, exist_ok=True)
+    pasax_librarian_dir = pasax_root / "librarian"
+    pasax_librarian_dir.mkdir(parents=True, exist_ok=True)
 
-    if kb_cfg.get("cleanup_parax_librarian", False):
-        print(f"[Main-KB] cleanup_parax_librarian = True，先清空 ParaX librarian: {parax_librarian_dir}")
-        clear_dir(parax_librarian_dir)
+    if kb_cfg.get("cleanup_pasax_librarian", False):
+        print(f"[Main-KB] cleanup_pasax_librarian = True，清空 PasaX librarian: {pasax_librarian_dir}")
+        clear_dir(pasax_librarian_dir)
 
     base_local_root = kb_cfg.get("local_root", "knowledge_base/local_knowledge_base")
     task_local_kb_dir = (project_root / base_local_root / task_name).resolve()
@@ -78,27 +78,27 @@ def run_pasax_for_kb(
 
     cmd = [
         sys.executable,
-        str(parax_run_py),
+        str(pasax_run_py),
     ]
 
     print("[Main-KB] 调用 PasaX 构建本地知识库：")
     print("         ", " ".join(cmd))
 
     try:
-        subprocess.run(cmd, check=True, cwd=str(parax_root))
-        print(f"[Main-KB] PasaX 完成。结果写入: {parax_librarian_dir}")
+        subprocess.run(cmd, check=True, cwd=str(pasax_root))
+        print(f"[Main-KB] PasaX 完成。结果写入: {pasax_librarian_dir}")
     except subprocess.CalledProcessError as e:
         print(f"[Main-KB] PasaX 运行失败，忽略本次 KB 构建: {e}")
         return None
 
-    json_files = sorted(parax_librarian_dir.glob("*.json"))
+    json_files = sorted(pasax_librarian_dir.glob("*.json"))
     if not json_files:
-        print(f"[Main-KB] PasaX librarian 目录下没有找到任何 JSON 文件: {parax_librarian_dir}")
+        print(f"[Main-KB] PasaX librarian 目录下没有找到任何 JSON 文件: {pasax_librarian_dir}")
     else:
         for src in json_files:
             dst = task_local_kb_dir / src.name
             shutil.copy2(src, dst)
-        print(f"[Main-KB] 已从 ParaX librarian 拷贝 {len(json_files)} 个 JSON 到 local KB: {task_local_kb_dir}")
+        print(f"[Main-KB] 已从 PasaX librarian 拷贝 {len(json_files)} 个 JSON 到 local KB: {task_local_kb_dir}")
 
     if kb_cfg.get("write_local_to_global", False):
         global_root = kb_cfg.get("global_root", "knowledge_base/global_knowledge_base")
@@ -114,8 +114,8 @@ def run_pasax_for_kb(
 
         print(f"[Main-KB] 已将本次 local KB 中的 {num_copied} 个 JSON 追加写入 global KB: {global_root_dir}")
 
-    if kb_cfg.get("cleanup_parax_librarian", False):
-        print(f"[Main-KB] cleanup_parax_librarian = True，任务结束清空 ParaX librarian: {parax_librarian_dir}")
-        clear_dir(parax_librarian_dir)
+    if kb_cfg.get("cleanup_pasax_librarian", False):
+        print(f"[Main-KB] cleanup_pasax_librarian = True，任务结束清空 PasaX librarian: {pasax_librarian_dir}")
+        clear_dir(pasax_librarian_dir)
 
     return task_local_kb_dir

@@ -12,4 +12,4 @@ Current node output path: {path}
 NOTICE: Any files created by the code you provide (plots, data, CSVs, etc.) MUST be written into the directory above (`{path}`).
 
 Return strict JSON. The JSON object should include analysis, any code to run (Python/Julia), numerical results, filenames of any produced files (saved under `{path}`), and a confidence score. 
-Example return: {{"core_results": {{"t": 1.01}}, "analysis": "...", "code": "print(1+1)", "files": ["result.csv","plot.png"]}}
+Example return: {{"core_results": {{"t": 1.01}}, "analysis": "...", "code": "```python\nprint(1+1)\n```", "files": ["result.csv","plot.png"]}}

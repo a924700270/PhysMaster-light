@@ -34,11 +34,32 @@ test_tools = [
     }
 ]
 
+import subprocess
+import tempfile
+import os
+from uuid import uuid4
+
 def execute_python_code(code: str) -> str:
-    """在沙盒中执行Python代码"""
-    tool_manager = StreamToolManager(url="http://10.200.0.53:30019", session_id=str(uuid4()), timeout=1800)
-    outputs, tool_stats = execute_code(code, tool_manager)
-    return outputs
+    """
+    在本地 Python 解释器中执行 code，返回 stdout+stderr。
+    """
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+        f.write(code)
+        f.flush()
+        tmp_path = f.name
+
+    try:
+        # 用当前解释器启子进程执行
+        completed = subprocess.run(
+            [subprocess.sys.executable, tmp_path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            timeout=1800
+        )
+        return completed.stdout
+    finally:
+        os.unlink(tmp_path)
 
 
 tool_functions = {
@@ -115,7 +136,6 @@ def call_model(
         
         # save tool call arguments
         if markdown_writer and completion.choices[0].message.tool_calls:
-            assert len(completion.choices[0].message.tool_calls) == 1, "Only one tool call is supported"
             
             if len(tools) == 1: 
                 call_args = json.loads(completion.choices[0].message.tool_calls[0].function.arguments)
@@ -157,9 +177,9 @@ def call_model(
     final_content = messages[-1].content.strip()
     
     if markdown_writer:
-        if len(tools) == 1: # experimentalist
+        if len(tools) == 1:
             pass
-        elif len(tools) == 2: # supervisor
+        elif len(tools) == 2: 
             markdown_writer.write_to_markdown(final_content, 'supervisor_text')
         else:
             raise ValueError(f"Unsupported tools length: {len(tools)}")

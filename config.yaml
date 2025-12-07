@@ -2,7 +2,7 @@
 
 # Clarifier settings
 clarifier:
-  query_file: "instructions/test.txt"
+  query_file: "instructions/weak_decay_4.txt"
   schema_file_path: "agent/clarifier/schema"
   output_path: "outputs"
   max_key_concpets: 5
@@ -18,20 +18,20 @@ knowledge_base:
   cleanup_local_after_run: true
 
   pasax:
-    root_path: "Librarian/Pasa-X-papermaster_new"
+    root_path: "agent/librarian/Pasa-X-papermaster_new"
 
   global:
     enabled: true  
 
 pipeline:
   parallel_processes: 2
-  max_nodes: 4
+  max_nodes: 15
   complete_score_threshold: 0.7
 
 mcts:
   draft_expansion: 2
   revise_expansion: 2
-  improve_expansion: 2
+  improve_expansion: 1
   exploration_constant: 1.414
 
 writer:

@@ -10,10 +10,12 @@ LLM_SYSTEM_PROMPT = """
     - Your output MUST be valid JSON only that strictly follows the given schema.
     - You should understand the core of this physics with scientific rigor, identify the essential physics as well as details likr conserved quantities, symmetries, scales etc.
     - The information you provide should be primarily based on the user's query.
-    - If some information has not been mentioned and is considered irrelevant, fill with "None".
+    - If some information has not been mentioned, fill "Nonde".
     - To eliminate ambiguity or clarify detail, reasonable inferences are allowed based on reliable physics knowledge.
     - Devide the task into several reasonable sub-tasks. To avoid redundant sub-tasks, only make necessary divisions. When the task is simple, only one sub-task is allowed.
     - The number of the items in "related_knowledge" should be less than or equal to {max_keys}
+
+    Important: If any suggested method, estimated result or known conclusion is provided in the user query, include it in the task background as detailed as possible for reference. If the estimated result is numerical, make sure the exact value and its form is included in the background.
     """
 
 USER_INPUT_PROMPT = """

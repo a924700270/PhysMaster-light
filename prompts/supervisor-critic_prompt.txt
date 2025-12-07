@@ -12,7 +12,8 @@ Decision type:
 - "to_revise": the current solution method has errors or gaps — generate revised nodes that fix it.
 - "to_improve": the method is generally correct but can be further refined — generate improved nodes.
 - "to_redraft": the current approach/idea is fundamentally wrong — discard it and draft new alternative approaches.
-- "complete": the current subtask is sufficiently solved; stop focusing on this subtask and proceed to draft the next subtask.
+- "complete": the current subtask is solved; stop focusing on this subtask and proceed to draft the next subtask.
+Notice: Do not be too strict when decide between "to_improve" and "complete", an acceptable solution is enough for "complete".
 
 OUTPUT FORMAT:
 Only return a valid JSON object with the following keys:

@@ -295,7 +295,7 @@ class SupervisorOrchestrator:
                 "You are a theoretical physicist and project supervisor. "
                 "Your task is to schedule the research problem into several well-defined sub-tasks and provide necessary background knowledge. "
                 "If you require background knowledge, call the `search_kb` tool to retrieve relevant information."
-
+                "Only call ONE tool at a time."
             ),
             user_prompt=prompt,
             tools=tools,
@@ -375,7 +375,7 @@ class SupervisorOrchestrator:
             5. Summrize the key points of the current solution as well as provide summmary and constructive opinion.
 
             When needed, you may call the `search_kb` tool to search for domain knowledge or relative papersthat are stored in the knowledge base to support your critique.
-
+            Only call ONE tool at a time.
             """
         )
 

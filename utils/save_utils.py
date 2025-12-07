@@ -121,6 +121,11 @@ class MarkdownWriter:
             self._write_lines([
                 f"```\n{text}\n```\n"
             ])
+        else:
+            self._write_lines([
+                f"# {mode}\n",
+                f"{text}\n"
+            ])
 
     def get_buffer(self) -> str:
         """返回内存中完整 Markdown 内容"""
