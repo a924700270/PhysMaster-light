@@ -2,7 +2,7 @@
 
 # Clarifier settings
 clarifier:
-  query_file: "instructions/test.txt"
+  query_file: "instructions/BH.txt"
   schema_file_path: "agent/clarifier/schema"
   output_path: "outputs"
   max_key_concpets: 5
@@ -24,8 +24,8 @@ knowledge_base:
     enabled: true  
 
 pipeline:
-  parallel_processes: 2
-  max_nodes: 4
+  parallel_processes: 3
+  max_nodes: 21
   complete_score_threshold: 0.7
 
 mcts:

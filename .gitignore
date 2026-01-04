@@ -1,6 +1,7 @@
 # User-requested ignores
 utils/julia_env/
 agent/librarian/Pasa-X-papermaster_new/data/
+knowledge_source/
 
 # Common Python ignores
 __pycache__/
