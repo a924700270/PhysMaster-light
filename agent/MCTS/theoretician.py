@@ -48,11 +48,14 @@ JULIA_TOOL = [
 ]
 
 class Theoretician:
+    def __init__(self, prompts_path: str = "prompts/",):
+        prompt_files = {
+            "theoretician_prompt": "theoretician_prompt.txt",
+            "theoretician_system_prompt": "theoretician_system_prompt.txt",
+        }
+        for attr, filename in prompt_files.items():
+            setattr(self, attr, self._load_prompt(filename))
 
-    def __init__(self, prompt_path: str = "prompts/theoretician_prompt.txt"):
-        self.prompt_path = Path(prompt_path)
-        with open(self.prompt_path, "r", encoding="utf-8") as f:
-            self.prompt_template = f.read()
 
     def solve(
         self,
@@ -77,16 +80,8 @@ class Theoretician:
             "Julia_code_interpreter": run_julia_code,
         }
 
-        system_prompt = (
-            """
-            As a theoretical and computational physicist, your core responsibilities are:
-            1. Analyse the problem with scientific rigor and establish appropriate theoretical models with physical intuition.
-            2. Propose numerical methods (Monte Carlo, DMRG etc.) and conduct numerical simulation with code.
-            NOTICE: YOU MUST RUN THE CODE TO GET THE ANSWER!
-            NOTICE: Try to use more precise method (eg. Quantum Monte Carlo) without systematic error first. Only when such attempt failed, introduce proper methods with  approximation (eg. mean-field approximations) to simplify the problem.
-            NOTICE: You should always keep your code concise as far as possible.  Try to avoid excessively long and complexed code. 
-            """
-        )
+        system_prompt = self.theoretician_system_prompt
+        prompt = prompt
 
         # log query
         if markdown_writer:

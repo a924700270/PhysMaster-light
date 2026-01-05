@@ -1,15 +1,15 @@
-The subtask and background knowledge: {subtask}
-Short-term memory from parent node: {memory}
-Node metadata: {node_metadata}
+Subtask and background knowledge:
+{subtask}
 
-Node type explanation: 
-- "revise": the former solution method has errors or gaps, you should fix it.
-- "improve": the former method is generally correct but can be further refined or execute on more sets of parameters.
-- "draft": draft new subtask solution or propose new alternative approaches.
+Short-term memory from the parent node:
+{memory}
 
-OUTPUT FORMAT:
-Current node output path: {path}
-NOTICE: Any files created by the code you provide (plots, data, CSVs, etc.) MUST be written into the directory above (`{path}`).
+Node metadata:
+{node_metadata}
 
-Return strict JSON. The JSON object should include analysis, any code to run (Python/Julia), numerical results, filenames of any produced files (saved under `{path}`), and a confidence score. 
-Example return: {{"core_results": {{"t": 1.01}}, "analysis": "...", "code": "```python\nprint(1+1)\n```", "files": ["result.csv","plot.png"]}}
+Current node output path:
+{path}
+
+NOTICE:
+- Any files created by the code you provide (plots, data, CSVs, etc.) must be written into the directory above.
+- Return the result strictly following the JSON schema defined in the system instructions, without ant text outside the JSON object.

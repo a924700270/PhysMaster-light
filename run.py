@@ -101,8 +101,8 @@ def main(config_path: str = "config.yaml"):
     else:
         task_local_kb_dir = run_pasax_for_kb(task_dir, task_name, kb_cfg)
 
-        from knowledge_base.local_store import LocalKnowledgeBase
-        from knowledge_base.global_store import GlobalKnowledgeBase
+        from LANDAU.local_store import LocalKnowledgeBase
+        from LANDAU.global_store import GlobalKnowledgeBase
 
         project_root = Path(__file__).resolve().parent
         base_local_root = kb_cfg.get("local_root", "knowledge_base/local_knowledge_base")
