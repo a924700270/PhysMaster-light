@@ -1,11 +1,8 @@
-from uuid import uuid4
-from typing import Dict, Callable
-from openai import OpenAI
 import json
-import requests
-import time
 import traceback
-from utils.llm_agent.tools.tool_manager import StreamToolManager, execute_code
+from typing import Callable, Dict, Optional
+from openai import OpenAI
+
 from utils.save_utils import MarkdownWriter
 
 # OpenAI API配置
@@ -13,192 +10,105 @@ base_url = "http://123.129.219.111:3000/v1"
 api_key = "sk-hnHVnUfqxBsPjGmC7EYAu5TWp9m31YqUJlPga0zulaqWRPTA"
 
 
-test_tools = [
-    {
-        "type": "function",
-        "function": {
-            "name": "Python_code_interpreter",
-            "description": "execute python code and return the result",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "code": {
-                        "type": "string",
-                        "description": "python code to execute",
-                    }
-                },
-                "required": ["code"],
-                "additionalProperties": False,
-            },
-        },
-    }
-]
-
-import subprocess
-import tempfile
-import os
-from uuid import uuid4
-
-def execute_python_code(code: str) -> str:
-    """
-    在本地 Python 解释器中执行 code，返回 stdout+stderr。
-    """
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
-        f.write(code)
-        f.flush()
-        tmp_path = f.name
-
-    try:
-        # 用当前解释器启子进程执行
-        completed = subprocess.run(
-            [subprocess.sys.executable, tmp_path],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            timeout=1800
-        )
-        return completed.stdout
-    finally:
-        os.unlink(tmp_path)
-
-
-tool_functions = {
-    "Python_code_interpreter":execute_python_code
-}
-
-
 def call_model_wo_tools(
     system_prompt: str,
     user_prompt: str,
     model_name: str = "gpt-5",
-    markdown_writer: MarkdownWriter = None,
+    markdown_writer: Optional[MarkdownWriter] = None,
+    agent_label: Optional[str] = None,
 ) -> str:
     client = OpenAI(api_key=api_key, base_url=base_url)
     completion = client.chat.completions.create(
         model=model_name,
         messages=[
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ]
+            {"role": "user", "content": user_prompt},
+        ],
     )
-    
-    final_content = completion.choices[0].message.content.strip()
+
+    final_content = (completion.choices[0].message.content or "").strip()
     if markdown_writer:
-        markdown_writer.write_to_markdown(final_content, 'agent_result')
+        markdown_writer.log_message(agent_label or "agent Response", final_content)
     return final_content
 
 
 def call_model(
     system_prompt: str,
     user_prompt: str,
-    tools: list = [],
-    tool_functions: Dict[str, Callable] = {},
+    tools: list | None = None,
+    tool_functions: Optional[Dict[str, Callable]] = None,
     model_name: str = "gpt-5",
     max_tool_calls: int = 20,
-    markdown_writer: MarkdownWriter = None,
+    markdown_writer: Optional[MarkdownWriter] = None,
+    agent_label: Optional[str] = None,
 ) -> str:
-    """调用GPT模型并处理工具调用
-    
-    Args:
-        system_prompt: 系统提示词
-        user_prompt: 用户提示词
-        tools: 可用的工具列表
-        tool_functions: 工具名称到实现函数的映射
-        model_name: 模型名称
-        max_tool_calls: 最大工具调用次数
-        
-    Returns:
-        str: 模型的最终回答
     """
+    调用GPT模型并处理工具调用，统一记录 Markdown：
+    - Agent 每次回复：## <agent_label or Agent Response>
+    - Tool 调用：# Tool Call - <name> + JSON 参数
+    - Tool 结果：# Tool Result - <name> + 文本/JSON
+    """
+    tools = tools or []
+    tool_functions = tool_functions or {}
+
     client = OpenAI(api_key=api_key, base_url=base_url)
     messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt}
+        {"role": "user", "content": user_prompt},
     ]
-    
+
     for _ in range(max_tool_calls):
         completion = client.chat.completions.create(
             model=model_name,
             messages=messages,
-            tools=tools,
+            tools=tools if tools else None,
         )
-        
-        messages.append(completion.choices[0].message)
-        
-        # save completion content
-        if markdown_writer and completion.choices[0].message.content:
-            markdown_writer.write_to_markdown(completion.choices[0].message.content, 'agent_result')
-        
-        if completion.choices[0].finish_reason == 'stop':
-            break
-            
-        tool_call_list = completion.choices[0].message.tool_calls
-        
-        # save tool call arguments
-        if markdown_writer and completion.choices[0].message.tool_calls:
-            
-            if len(tools) == 1: 
-                call_args = json.loads(completion.choices[0].message.tool_calls[0].function.arguments)
-                call_code = call_args.get("code")
-                markdown_writer.write_to_markdown(call_code, 'julia_call')
-            
-            elif len(tools) == 2: 
-                function_name = completion.choices[0].message.tool_calls[0].function.name
-                call_args = json.loads(completion.choices[0].message.tool_calls[0].function.arguments)
-                query = call_args.get("query")
-                markdown_writer.write_to_markdown(query, function_name)
-            else:
-                raise ValueError(f"Unsupported tools length: {len(tools)}")
-            
+
+        msg = completion.choices[0].message
+        messages.append(msg)
+
+        content = msg.content or ""
+        if markdown_writer and content:
+            markdown_writer.log_message(agent_label or "Agent Response", content)
+
+        tool_call_list = msg.tool_calls or []
+        if not tool_call_list:
+            if completion.choices[0].finish_reason == "stop":
+                return content.strip()
+            continue
 
         for tool_call in tool_call_list:
+            raw_args = tool_call.function.arguments or "{}"
             try:
-                call_args = json.loads(tool_call.function.arguments)
-                result = tool_functions[tool_call.function.name](**call_args)
+                call_args = json.loads(raw_args)
+            except Exception:
+                call_args = {"_raw": raw_args}
 
-                if markdown_writer:
-                                        
-                    if len(tools) == 1: 
-                        markdown_writer.write_to_markdown(result, 'julia_result')
-                    elif len(tools) == 2: 
-                        pass
-                    else:
-                        raise ValueError(f"Unsupported tools length: {len(tools)}")
-                    
-            except Exception as e:
+            if markdown_writer:
+                markdown_writer.log_tool_call(tool_call.function.name, call_args)
+
+            try:
+                fn = tool_functions.get(tool_call.function.name)
+                if fn is None:
+                    result = f"[tool:{tool_call.function.name}] not implemented"
+                else:
+                    result = fn(**call_args) if isinstance(call_args, dict) else fn(call_args)
+            except Exception:
                 result = traceback.format_exc()
 
-            messages.append({
-                "role": "tool",
-                "tool_call_id": tool_call.id,
-                "content": str(result)
-            })
-    
-    final_content = messages[-1].content.strip()
-    
-    if markdown_writer:
-        if len(tools) == 1:
-            pass
-        elif len(tools) == 2: 
-            markdown_writer.write_to_markdown(final_content, 'supervisor_text')
-        else:
-            raise ValueError(f"Unsupported tools length: {len(tools)}")
-    
-    return final_content
+            if markdown_writer:
+                markdown_writer.log_tool_result(tool_call.function.name, result)
 
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": str(result),
+                }
+            )
 
-if __name__ == '__main__':
-    
-    system_prompt = "You are a helpful assistant."
-    user_prompt = "calculate 89089*89089*0.678 with the help of python"
-    
-    result = call_model(
-        system_prompt=system_prompt,
-        user_prompt=user_prompt,
-        tools=test_tools,
-        tool_functions=tool_functions,
-        model_name="gpt-5",
-        max_tool_calls=20,
-    )
-    print(result)
-        
+    # fallback: last agent message with content
+    for m in reversed(messages):
+        if m.get("role") == "agent" and m.get("content"):
+            return str(m["content"]).strip()
+    return ""

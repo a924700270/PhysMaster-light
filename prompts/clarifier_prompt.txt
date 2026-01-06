@@ -1,0 +1,10 @@
+User query:
+{user_query}
+
+Schema to follow strictly (JSON):
+{schema_json}
+
+Additional runtime constraints:
+- The number of items in "related_knowledge" must be <= {max_keys}.
+
+Now output ONLY the JSON object that adheres to the schema and constraints above.

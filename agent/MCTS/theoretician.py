@@ -2,7 +2,8 @@ import json
 from pathlib import Path
 from typing import Dict, Any, List
 
-from utils.gpt5_utils import call_model, execute_python_code
+from utils.gpt5_utils import call_model
+from utils.python_utils import execute_python_code
 from utils.julia_env.execute import run_julia_code
 from utils.save_utils import MarkdownWriter
 
@@ -74,6 +75,12 @@ class Theoretician:
             path=output_dir,
         )
 
+        markdown_writer.write_to_markdown(
+            prompt + "\n",
+            mode="critic",
+        )
+        print("========== Supervisor-Scheduler ========== \n" + prompt + "\n")
+
         tools = PYTHON_TOOL + JULIA_TOOL
         tool_functions = {
             "Python_code_interpreter": execute_python_code,
@@ -81,12 +88,7 @@ class Theoretician:
         }
 
         system_prompt = self.theoretician_system_prompt
-        prompt = prompt
 
-        # log query
-        if markdown_writer:
-            markdown_writer.write_to_markdown( prompt + "\n", mode='theoretician_query')
-        print("========== Theoretician: Query ========== \n" + prompt + "\n")
 
         response = call_model(
             system_prompt=system_prompt,
@@ -94,6 +96,7 @@ class Theoretician:
             tools=tools,
             tool_functions=tool_functions,
             markdown_writer=markdown_writer,
+            agent_label="Theoretician",
         )
 
         if markdown_writer:

@@ -1,22 +1,19 @@
-import os
-import re
 import json
-import multiprocessing as mp
-from concurrent.futures import ProcessPoolExecutor, wait
+import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Iterable
-from pathlib import Path
+from typing import Dict, Iterable, List
 
-_DISK_KB_INDEX = None  # lazy-built: list[dict]
+_INDEX_CACHE: Dict[str, List[dict]] = {}
+
 
 def _kb_roots() -> dict:
     repo_root = Path(__file__).resolve().parents[2]
-    kb_root = repo_root() / "knowledge_base"
+    landau_root = repo_root / "LANDAU"
     return {
-        "local": kb_root / "local_library",
-        "global": kb_root / "global_library",
-        "prior": kb_root / "global_prior",
-        "methodology": kb_root / "global_methodology"
+        "local": landau_root / "local_library",
+        "global": landau_root / "global_library",
+        "prior": landau_root / "global_prior",
+        "methodology": landau_root / "global_methodology",
     }
 
 
@@ -96,97 +93,100 @@ def _iter_files(root: Path, exts: tuple[str, ...]) -> Iterable[Path]:
             yield p
 
 
-def _build_disk_index(force: bool = False) -> list[dict]:
-    global _DISK_KB_INDEX
-    if _DISK_KB_INDEX is not None and not force:
-        return _DISK_KB_INDEX
+def _index_json_dir(root: Path, source: str) -> list[dict]:
+    entries: list[dict] = []
+    if not root or not root.exists():
+        return entries
 
-    roots = _kb_roots()
-    index: list[dict] = []
-
-    # 1) local/global/prior: JSON
-    for source in ("local", "global", "prior"):
-        root = roots.get(source)
-        if not root or not root.exists():
+    for fp in _iter_files(root, (".json",)):
+        try:
+            with fp.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
             continue
-        for fp in _iter_files(root, (".json",)):
-            try:
-                with fp.open("r", encoding="utf-8") as f:
-                    data = json.load(f)
-            except Exception:
-                continue
 
-            # If it contains extra.recall_papers/top_papers, index each candidate for finer granularity
-            candidates = []
-            if isinstance(data, dict):
-                extra = data.get("extra") or {}
-                if isinstance(extra, dict):
-                    rp = extra.get("recall_papers") or extra.get("top_papers")
-                    if isinstance(rp, list):
-                        candidates = [c for c in rp if isinstance(c, dict)]
+        # If recall/top papers exist, index those; else index the object itself.
+        candidates = []
+        if isinstance(data, dict):
+            extra = data.get("extra") or {}
+            if isinstance(extra, dict):
+                rp = extra.get("recall_papers") or extra.get("top_papers")
+                if isinstance(rp, list):
+                    candidates = [c for c in rp if isinstance(c, dict)]
+        if not candidates and isinstance(data, list):
+            candidates = [c for c in data if isinstance(c, dict)]
+        if not candidates and isinstance(data, dict):
+            candidates = [data]
 
-            if candidates:
-                for i, c in enumerate(candidates[:200]):
-                    title = c.get("title", "") or data.get("title", "")
-                    text = _extract_search_text(c)
-                    if not text and title:
-                        text = title
-                    index.append(
-                        {
-                            "source": source,
-                            "path": f"{fp.as_posix()}#cand{i}",
-                            "title": title,
-                            "text": text,
-                            "text_lower": (text or "").lower(),
-                        }
-                    )
-            else:
-                title = data.get("title", "") if isinstance(data, dict) else ""
-                text = _extract_search_text(data)
-                if not text and title:
-                    text = title
-                index.append(
-                    {
-                        "source": source,
-                        "path": fp.as_posix(),
-                        "title": title,
-                        "text": text,
-                        "text_lower": (text or "").lower(),
-                    }
-                )
-
-    # 2) methodology: manual notes (.md/.txt), fallback legacy global_case
-    meth_root = roots.get("methodology")
-    legacy_root = roots.get("case_legacy")
-    chosen = meth_root if (meth_root and meth_root.exists()) else legacy_root
-
-    if chosen and chosen.exists():
-        for fp in _iter_files(chosen, (".md", ".txt", ".json")):
-            try:
-                if fp.suffix.lower() == ".json":
-                    with fp.open("r", encoding="utf-8") as f:
-                        data = json.load(f)
-                    title = (data.get("title") if isinstance(data, dict) else "") or fp.stem
-                    text = _extract_search_text(data)
-                else:
-                    text = fp.read_text(encoding="utf-8", errors="ignore")
-                    title = fp.stem
-                text = (text or "")[:20000]
-            except Exception:
-                continue
-
-            index.append(
+        for i, payload in enumerate(candidates[:200]):
+            title = payload.get("title", "")
+            text = _extract_search_text(payload)
+            if not text and title:
+                text = title
+            entries.append(
                 {
-                    "source": "methodology",
-                    "path": fp.as_posix(),
+                    "source": source,
+                    "path": f"{fp.as_posix()}#cand{i}" if len(candidates) > 1 else fp.as_posix(),
                     "title": title,
                     "text": text,
                     "text_lower": (text or "").lower(),
                 }
             )
 
-    _DISK_KB_INDEX = index
-    return _DISK_KB_INDEX
+    return entries
+
+
+def _index_text_dir(root: Path, source: str) -> list[dict]:
+    entries: list[dict] = []
+    if not root or not root.exists():
+        return entries
+
+    for fp in _iter_files(root, (".md", ".txt", ".json")):
+        try:
+            if fp.suffix.lower() == ".json":
+                with fp.open("r", encoding="utf-8") as f:
+                    data = json.load(f)
+                title = (data.get("title") if isinstance(data, dict) else "") or fp.stem
+                text = _extract_search_text(data)
+            else:
+                text = fp.read_text(encoding="utf-8", errors="ignore")
+                title = fp.stem
+            text = (text or "")[:20000]
+        except Exception:
+            continue
+
+        entries.append(
+            {
+                "source": source,
+                "path": fp.as_posix(),
+                "title": title,
+                "text": text,
+                "text_lower": (text or "").lower(),
+            }
+        )
+
+    return entries
+
+
+def _build_index(kind: str, *, refresh: bool = False) -> list[dict]:
+    if refresh:
+        _INDEX_CACHE.pop(kind, None)
+    if not refresh and kind in _INDEX_CACHE:
+        return _INDEX_CACHE[kind]
+
+    roots = _kb_roots()
+    index: list[dict] = []
+
+    if kind == "library":
+        for src in ("local", "global"):
+            index.extend(_index_json_dir(roots.get(src), src))
+    elif kind == "methodology":
+        index.extend(_index_text_dir(roots.get("methodology"), "methodology"))
+    elif kind == "prior":
+        index.extend(_index_json_dir(roots.get("prior"), "prior"))
+
+    _INDEX_CACHE[kind] = index
+    return index
 
 
 def _make_excerpt(text: str, q_lower: str, tokens: list[str], *, window: int = 220) -> str:
@@ -214,28 +214,21 @@ def _make_excerpt(text: str, q_lower: str, tokens: list[str], *, window: int = 2
     return snippet
 
 
-def _search(query: str, top_k: int, sources: list[str] | None, refresh: bool) -> list[str]:
+def _rank_results(index: list[dict], query: str, top_k: int) -> list[dict]:
     q = (query or "").strip()
-    if not q:
+    if not q or not index:
         return []
 
-    allowed = {"local", "global", "prior", "methodology"}
-    if sources:
-        scope = [s for s in sources if s in allowed]
-        if not scope:
-            scope = list(allowed)
-    else:
-        scope = list(allowed)
-
-    index = _build_disk_index(force=bool(refresh))
+    try:
+        top_k = max(1, int(top_k))
+    except Exception:
+        top_k = 5
 
     q_lower = q.lower()
     tokens = _tokenize_query(q)
 
     scored = []
     for item in index:
-        if item.get("source") not in scope:
-            continue
         text_lower = item.get("text_lower") or ""
         if not text_lower:
             continue
@@ -247,11 +240,71 @@ def _search(query: str, top_k: int, sources: list[str] | None, refresh: bool) ->
         scored.append((score, item))
 
     scored.sort(key=lambda x: x[0], reverse=True)
-    out = []
-    for score, item in scored[: max(1, top_k)]:
-        title = item.get("title") or ""
-        path = item.get("path") or ""
-        excerpt = _make_excerpt(item.get("text") or "", q_lower, tokens)
-        out.append(f"[{item.get('source')}] {title}\n[path] {path}\n[score] {score}\n{excerpt}")
-    return out
+    hits: list[dict] = []
+    for score, item in scored[:top_k]:
+        hits.append(
+            {
+                "source": item.get("source", ""),
+                "title": item.get("title", ""),
+                "path": item.get("path", ""),
+                "score": score,
+                "excerpt": _make_excerpt(item.get("text") or "", q_lower, tokens),
+            }
+        )
+    return hits
 
+
+def _format_hits(label: str, query: str, hits: list[dict]) -> str:
+    if not query:
+        return f"[{label}] Empty query."
+    if not hits:
+        return f"[{label}] No entries found for query: {query}"
+
+    lines = [f"[{label}] Search results for: {query}"]
+    for i, h in enumerate(hits, 1):
+        lines.append(
+            f"{i}. [{h.get('source')}] {h.get('title', '')}\n"
+            f"[path] {h.get('path', '')}\n"
+            f"[score] {h.get('score')}\n"
+            f"{h.get('excerpt', '')}"
+        )
+    return "\n".join(lines)
+
+
+def library_search(query: str, top_k: int = 5, sources: list[str] | None = None, refresh: bool = False) -> str:
+    """
+    Search across local/global library JSON entries (recall_papers/top_papers aware).
+    """
+    if refresh:
+        _INDEX_CACHE.pop("library", None)
+    index = _build_index("library", refresh=refresh)
+
+    allowed = {"local", "global"}
+    scope = [s for s in (sources or []) if s in allowed]
+    if scope:
+        index = [i for i in index if i.get("source") in scope]
+
+    hits = _rank_results(index, query, top_k)
+    return _format_hits("Library KB", query, hits)
+
+
+def methodology_search(query: str, top_k: int = 5, refresh: bool = False) -> str:
+    """
+    Search methodology notes (.md/.txt/.json) only.
+    """
+    if refresh:
+        _INDEX_CACHE.pop("methodology", None)
+    index = _build_index("methodology", refresh=refresh)
+    hits = _rank_results(index, query, top_k)
+    return _format_hits("Methodology KB", query, hits)
+
+
+def prior_search(query: str, top_k: int = 5, refresh: bool = False) -> str:
+    """
+    Search prior outputs only.
+    """
+    if refresh:
+        _INDEX_CACHE.pop("prior", None)
+    index = _build_index("prior", refresh=refresh)
+    hits = _rank_results(index, query, top_k)
+    return _format_hits("Prior KB", query, hits)

@@ -8,7 +8,6 @@ from typing import Any, Dict, Tuple
 
 from agent.MCTS.supervisor import SupervisorOrchestrator
 from agent.clarifier.clarifier import Clarifier
-from agent.librarian.librarian import run_pasax_for_kb
 from visualization.generate_html import generate_vis
 
 
@@ -91,39 +90,29 @@ def main(config_path: str = "config.yaml"):
     structured_problem, task_dir, task_name = clarify_query(query_path, clarifier_cfg)
     task_name = get_task_name(structured_problem)
 
-    kb_cfg = cfg.get("knowledge_base", {}) or {}
-    task_local_kb_dir = None  
+    landau_cfg = cfg.get("landau", {}) or {}
 
-    if not kb_cfg.get("enabled", False):
-        print("[KB] knowledge_base.enabled = False，跳过 PasaX 和 KB 加载")
+    if not landau_cfg.get("enabled", False):
+        print("[LANDAU] landau.enabled = False，跳过 KB 加载")
         local_kb = EmptyLocalKB()
         global_kb = EmptyGlobalKB()
     else:
-        task_local_kb_dir = run_pasax_for_kb(task_dir, task_name, kb_cfg)
-
-        from LANDAU.local_store import LocalKnowledgeBase
-        from LANDAU.global_store import GlobalKnowledgeBase
+        from LANDAU.local_library.local_store import LocalKnowledgeBase
+        from LANDAU.global_library.global_store import GlobalKnowledgeBase
 
         project_root = Path(__file__).resolve().parent
-        base_local_root = kb_cfg.get("local_root", "knowledge_base/local_knowledge_base")
+        local_root_dir = (project_root / landau_cfg.get("library_local", "LANDAU/local_library")).resolve()
+        global_root_dir = (project_root / landau_cfg.get("library_global", "LANDAU/global_library")).resolve()
+        methodology_root = (project_root / landau_cfg.get("methodology", "LANDAU/global_methodology")).resolve()
+        prior_root = (project_root / landau_cfg.get("prior", "LANDAU/global_prior")).resolve()
 
-        if task_local_kb_dir is not None:
-            local_root_dir = task_local_kb_dir
-        else:
-            local_root_dir = (project_root / base_local_root / task_name).resolve()
+        print(f"[LANDAU] Library (local): {local_root_dir}")
+        print(f"[LANDAU] Library (global): {global_root_dir}")
+        print(f"[LANDAU] Methodology: {methodology_root}")
+        print(f"[LANDAU] Prior: {prior_root}")
 
-        print(f"[LocalKB] Using local KB dir: {local_root_dir}")
         local_kb = LocalKnowledgeBase(str(local_root_dir))
-
-        global_cfg = kb_cfg.get("global", {}) or {}
-        if global_cfg.get("enabled", False):
-            global_kb = GlobalKnowledgeBase(global_cfg)
-        else:
-            global_kb = EmptyGlobalKB()
-
-        if kb_cfg.get("merge_local_into_global", False):
-            print("[KB] merge_local_into_global = True，global_kb 将与 local_kb 共用。")
-            global_kb = local_kb
+        global_kb = GlobalKnowledgeBase({"root": str(global_root_dir)})
 
     processes = pipeline_cfg.get("parallel_processes", 2)
     max_nodes = pipeline_cfg.get("max_nodes", 4)

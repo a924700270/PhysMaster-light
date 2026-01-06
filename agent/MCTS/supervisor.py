@@ -1,70 +1,119 @@
-import os
-import re
-import json
 import multiprocessing as mp
+import json
 from concurrent.futures import ProcessPoolExecutor, wait
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Iterable
-from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 from .mcts_tree import MCTSTree
 from .mcts_node import MCTSNode
 from .theoretician import run_theo_node
-from .LANDAU import _search
+from .LANDAU import library_search, methodology_search, prior_search
 
 from utils.gpt5_utils import call_model
 from utils.save_utils import MarkdownWriter
 
-from LANDAU.global_store import GlobalKnowledgeBase
-from LANDAU.local_store import LocalKnowledgeBase
+from LANDAU.global_library.global_store import GlobalKnowledgeBase
+from LANDAU.local_library.local_store import LocalKnowledgeBase
 
 
 _GLOBAL_POOL: ProcessPoolExecutor | None = None
 
-SEARCH_KB_TOOL = [
-    {
-        "type": "function",
-        "function": {
-            "name": "search_kb",
-            "description": (
-                "Search across FOUR knowledge sources and return short snippets:\n"
-                "1) knowledge_base/local_knowledge_base (core knowledge JSON)\n"
-                "2) knowledge_base/global_knowledge_base (core knowledge JSON)\n"
-                "3) knowledge_base/global_prior (prior outputs)\n"
-                "4) knowledge_base/global_methodology (manual methodology notes, .md/.txt)"
-            ),
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "query": {
-                        "type": "string",
-                        "description": "What to search for (keywords / question / subtask description)."
-                    },
-                    "top_k": {
-                        "type": "integer",
-                        "description": "Maximum number of results to return.",
-                        "default": 5
-                    },
-                    "sources": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": (
-                            "Subset of sources to search. Allowed values: "
-                            "local, global, prior, methodology. "
-                        )
-                    },
-                    "refresh": {
-                        "type": "boolean",
-                        "description": "Force rebuild disk index before searching (use when files changed).",
-                        "default": False
-                    },
+KB_LIBRARY_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "library_search",
+        "description": (
+            "Search the library knowledge base (local + global JSONs, recall/top papers aware). "
+            "Use for theory/background references."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "Keywords or question to search in library notes."
                 },
-                "required": ["query"],
-                "additionalProperties": False,
+                "top_k": {
+                    "type": "integer",
+                    "description": "Maximum number of results to return.",
+                    "default": 5
+                },
+                "sources": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Optional subset: local, global."
+                },
+                "refresh": {
+                    "type": "boolean",
+                    "description": "Force rebuild the library index before searching.",
+                    "default": False
+                },
             },
+            "required": ["query"],
+            "additionalProperties": False,
         },
-    }
-]
+    },
+}
+
+KB_METHODOLOGY_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "methodology_search",
+        "description": "Search methodology notes/playbooks (.md/.txt/.json).",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "Keywords or question to search in methodology notes."
+                },
+                "top_k": {
+                    "type": "integer",
+                    "description": "Maximum number of results to return.",
+                    "default": 5
+                },
+                "refresh": {
+                    "type": "boolean",
+                    "description": "Force rebuild the methodology index before searching.",
+                    "default": False
+                },
+            },
+            "required": ["query"],
+            "additionalProperties": False,
+        },
+    },
+}
+
+KB_PRIOR_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "prior_search",
+        "description": "Search prior outputs/results.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "Keywords or question to search in prior results."
+                },
+                "top_k": {
+                    "type": "integer",
+                    "description": "Maximum number of results to return.",
+                    "default": 5
+                },
+                "refresh": {
+                    "type": "boolean",
+                    "description": "Force rebuild the prior index before searching.",
+                    "default": False
+                },
+            },
+            "required": ["query"],
+            "additionalProperties": False,
+        },
+    },
+}
+
+KB_SEARCH_TOOLS = [KB_LIBRARY_TOOL, KB_METHODOLOGY_TOOL, KB_PRIOR_TOOL]
 
 
 def _init_worker():
@@ -92,7 +141,7 @@ class SupervisorOrchestrator:
         revise_expansion: int = 2,
         improve_expansion: int = 1,
         exploration_constant: float = 1.414,
-        complete_score_threshold: float = 0.9,
+        complete_score_threshold: float = 0.8,
     ):
         self.structured_problem = structured_problem
         self.local_kb = local_kb
@@ -119,11 +168,7 @@ class SupervisorOrchestrator:
         for attr, filename in prompt_files.items():
             setattr(self, attr, self._load_prompt(filename))
 
-    def _load_prompt(self, filename: str) -> str:
-        path = self.prompts_path / filename
-        with open(path, "r", encoding="utf-8") as f:
-            return f.read()
-
+        # Build subtasks and initialize tree/root
         self.subtasks = self._build_subtasks()
 
         self.tree = MCTSTree(
@@ -149,42 +194,23 @@ class SupervisorOrchestrator:
                 initializer=_init_worker,
             )
 
-    def _search_kb(self, query: str, top_k: int = 5, sources=None, refresh: bool = False) -> str:
-        """
-        Search KB across:
-        - disk local/global/prior/methodology (primary)
-        """
-        top_k = int(top_k or 5)
-        if top_k <= 0:
-            top_k = 5
+    def _load_prompt(self, filename: str) -> str:
+        path = self.prompts_path / filename
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read()
 
-        # 1) Primary: disk search across four KBs
-        search_results = []
-        try:
-            search_results = _search(query=query, top_k=top_k, sources=sources, refresh=refresh) or []
-        except Exception as e:
-            search_results = [f"[disk_search error: {e}]"]
-
-        # Merge + de-dup (disk first)
-        merged = []
-        seen = set()
-
-        for r in (disk_results + legacy_results):
-            if not r:
-                continue
-            s = str(r)
-            if s in seen:
-                continue
-            seen.add(s)
-            merged.append(s)
-
-        if not merged:
-            return f"[KB] No entries found for query: {query}"
-
-        lines = [f"[KB] Search results for: {query}"]
-        for i, txt in enumerate(merged[:top_k], 1):
-            lines.append(f"{i}. {txt}")
-        return "\n".join(lines)
+    def _kb_tool_functions(self) -> Dict[str, Any]:
+        return {
+            "library_search": lambda query, top_k=5, sources=None, refresh=False: library_search(
+                query=query, top_k=top_k, sources=sources, refresh=refresh
+            ),
+            "methodology_search": lambda query, top_k=5, refresh=False: methodology_search(
+                query=query, top_k=top_k, refresh=refresh
+            ),
+            "prior_search": lambda query, top_k=5, refresh=False: prior_search(
+                query=query, top_k=top_k, refresh=refresh
+            ),
+        }
 
 
     def run(self) -> Dict[str, Any]:
@@ -211,7 +237,7 @@ class SupervisorOrchestrator:
             expansion_count = self._get_expansion_count(decision)
             child_node_type = self._decision_to_node_type(decision)
             next_subtask_id = selected_node.subtask_id
-            is_complete = (decision == "complete") and (score >= self.complete_score_threshold)
+            is_complete = decision == "complete"
 
             if selected_node.node_type == "virtual":
                 next_subtask_id = self.subtasks[0]["id"] if self.subtasks else 1
@@ -296,12 +322,8 @@ class SupervisorOrchestrator:
             node=json.dumps(node_info, ensure_ascii=False, indent=2),
         )
 
-        tools = SEARCH_KB_TOOL
-        tool_functions = {
-            "search_kb": lambda query, top_k=5, sources=None, refresh=False: self._search_kb(
-                query, top_k=top_k, sources=sources, refresh=refresh
-            )
-        }
+        tools = KB_SEARCH_TOOLS
+        tool_functions = self._kb_tool_functions()
 
         response = call_model(
             system_prompt=system_prompt,
@@ -309,9 +331,9 @@ class SupervisorOrchestrator:
             tools=tools,
             tool_functions=tool_functions,
             model_name="gpt-5",
+            markdown_writer=None,
+            agent_label="Scheduler",
         )
-
-        print("========== Scheduler ========== \n" + response + "\n")
 
         return response
 
@@ -372,15 +394,8 @@ class SupervisorOrchestrator:
             file_prefix=self._get_safe_name(),
         )
 
-        tools = SEARCH_KB_TOOL
-
-        tool_functions = {
-            "search_kb": lambda query, top_k=5, sources=None, refresh=False: self._search_kb(
-                query, top_k=top_k, sources=sources, refresh=refresh
-            )
-        }       
-
-
+        tools = KB_SEARCH_TOOLS
+        tool_functions = self._kb_tool_functions()
 
         response = call_model(
             system_prompt=system_prompt,
@@ -388,11 +403,12 @@ class SupervisorOrchestrator:
             tools=tools,
             tool_functions=tool_functions,
             markdown_writer=markdown_writer,
+            agent_label="Critic",
         )
 
         markdown_writer.write_to_markdown(
             response + "\n",
-            mode="supervisor_critic",
+            mode="critic",
         )
 
         print("========== Supervisor-Critic ========== \n" + response + "\n")
@@ -604,6 +620,12 @@ class SupervisorOrchestrator:
                     "expected_output": self.structured_problem.get("expected_output", ""),
                 }
             ]
+
+        # Ensure deterministic ordering by id
+        try:
+            subtasks_payload = sorted(subtasks_payload, key=lambda x: x.get("id", 0))
+        except Exception:
+            pass
         return subtasks_payload
 
     def _get_next_subtask(self, current_subtask_id: int) -> Optional[Dict[str, Any]]:

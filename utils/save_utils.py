@@ -1,7 +1,7 @@
+import json
 import os
 import time
 import re
-import uuid
 from pathlib import Path
 
 class MarkdownWriter:
@@ -87,47 +87,50 @@ class MarkdownWriter:
                 self.buffer.append(line)
 
     def write_to_markdown(self, text: str, mode: str = 'supervisor'):
+        """
+        - Scheduler Response / Critic Response / Theoretician Response (##)
+        - tool (expects text to include tool name/context) (#)
+        """
         if text is None:
             text = ""
 
-        if mode not in ('julia_call', 'julia_result'):
+        mode = mode or ""
+        if mode != "tool":
             text = text.replace("#", "\\#")  # 转义 Markdown #
 
-        if mode == 'supervisor_scheduler':
-            self._write_lines([
-                "# Supervisor-Scheduler\n",
-                f"{text}\n"
-            ])
-        elif mode == 'supervisor_critic':
-            self._write_lines([
-                "# Supervisor-Critic Evaluation\n",
-                f"{text}\n"
-            ])
-        elif mode == 'theoretician_query':
-            self._write_lines([
-                "# Theoretician Task\n",
-                f"{text}\n"
-            ])
-        elif mode == 'theoretician_response':
-            self._write_lines([
-                "# Theoretician Solution\n",
-                f"{text}\n"
-            ])
-        elif mode == 'julia_call':
-            self._write_lines([
-                f"```julia\n{text}\n```\n"
-            ])
-        elif mode == 'julia_result':
-            self._write_lines([
-                f"```\n{text}\n```\n"
-            ])
+        if mode in ('supervisor_scheduler', 'scheduler', 'Scheduler Response'):
+            self._write_lines(["## Scheduler Response\n", f"{text}\n"])
+        elif mode in ('supervisor_critic', 'critic', 'Critic Response'):
+            self._write_lines(["## Critic Response\n", f"{text}\n"])
+        elif mode in ('theoretician_response', 'theoretician', 'Theoretician Response'):
+            self._write_lines(["## Theoretician Response\n", f"{text}\n"])
+        elif mode == 'tool':
+            self._write_lines([f"### Tool - {text}\n"])
         else:
-            self._write_lines([
-                f"# {mode}\n",
-                f"{text}\n"
-            ])
+            self._write_lines([f"## {mode}\n", f"{text}\n"])
+
+    def log_tool_call(self, name: str, arguments: dict):
+        payload = json.dumps(arguments or {}, ensure_ascii=False, indent=2)
+        self._write_lines([
+            f"### Tool - {name} call\n",
+            "```json\n",
+            f"{payload}\n",
+            "```\n",
+        ])
+
+    def log_tool_result(self, name: str, result):
+        body = result if isinstance(result, str) else json.dumps(result, ensure_ascii=False, indent=2)
+        self._write_lines([
+            f"### Tool - {name} result\n",
+            "```\n",
+            f"{body}\n",
+            "```\n",
+        ])
+
+    def log_message(self, label: str, content: str):
+        safe_label = label or "Message"
+        self._write_lines([f"## {safe_label}\n", f"{content or ''}\n"])
 
     def get_buffer(self) -> str:
         """返回内存中完整 Markdown 内容"""
         return "".join(self.buffer)
-
