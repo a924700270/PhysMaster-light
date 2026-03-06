@@ -136,7 +136,22 @@ class Clarifier:
         
         response = call_model_wo_tools(system_prompt=system_prompt, user_prompt=user_prompt)
 
-        return response
+        return response, schema
+
+    def _normalize_contract(self, contract, schema):
+        """
+        Keep only keys defined by schema.properties.
+        This prevents schema/template metadata keys from leaking into output.
+        """
+        if not isinstance(contract, dict):
+            return contract
+        if not isinstance(schema, dict):
+            return contract
+        properties = schema.get("properties")
+        if not isinstance(properties, dict):
+            return contract
+        allowed = set(properties.keys())
+        return {k: v for k, v in contract.items() if k in allowed}
 
     def _parse_result(self, result):
         """Parse the LLM response into structured format"""
@@ -156,6 +171,7 @@ class Clarifier:
             }
 
     def run(self, raw_input):
-        result = self.task_spec(raw_input)
+        result, schema = self.task_spec(raw_input)
         contract = self._parse_result(result)
+        contract = self._normalize_contract(contract, schema)
         return contract

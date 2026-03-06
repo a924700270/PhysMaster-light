@@ -13,7 +13,7 @@ Current node output path:
 {path}
 
 Execution notice:
-- Treat the path above as the working output directory for this node.
-- Any generated artifacts (plots/data/tables/scripts) must be written to that directory.
-- Include concrete validation checks in your analysis whenever possible.
+- The path above is the working output directory for this node. Any generated files (plots, data, tables, etc.) must be written to that directory. Do not create any files outside current node output path.
+- For any files generated, you should introduce it briefly in your response, including its format, proper way to load it, etc.
+- You should not run code in the mode of simulation/mock, make sure you have really executed the code and have given real results.
 - Return only the required JSON object (no extra text).

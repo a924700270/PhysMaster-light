@@ -7,4 +7,3 @@ Requirements:
 - Start with `# Summary`.
 - Include sections: `## Task`, `## Key Reasoning Steps`, `## Final Outcome`, `## Open Issues`.
 - Use only information present in the provided trajectory.
-- Keep it concise and avoid hallucinated claims.

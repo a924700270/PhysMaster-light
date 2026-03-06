@@ -133,13 +133,14 @@ def main(config_path: str = "config.yaml"):
 
     summarizer = TrajectorySummarizer(prompts_path="prompts/")
     summary_md_path = task_dir / "summary.md"
+    contract_for_summary = json.dumps(structured_problem, ensure_ascii=False, indent=2)
     summarizer.write_summary_markdown(
         summary_md_path,
-        task_description=structured_problem.get("task_description", ""),
+        task_description=contract_for_summary,
         trajectory=trajectory,
     )
     summary_text = summary_md_path.read_text(encoding="utf-8")
-    print("Summary generated:", summary_md_path)
+    print("[Summrizer] Summary generated:", summary_md_path)
 
     if vis_cfg.get("enabled",False):
         vis_path = task_dir / "visualization.html"
@@ -150,9 +151,8 @@ def main(config_path: str = "config.yaml"):
             subtasks=supervisor.subtasks,
             summary=summary_text,
         )
-        print("visualization succeed")
-    print("Supervisor finished.")
-
+        print("[Visulization] visualization saved:", vis_path)
+    
 
 if __name__ == "__main__":
     cfg_file = "config.yaml"
