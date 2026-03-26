@@ -1,0 +1,60 @@
+INFO:     Started server process [1962453]
+INFO:     Waiting for application startup.
+[03/26/26 21:50:44] INFO     StreamableHTTP       streamable_http_manager.py:116
+                             session manager                                    
+                             started                                            
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8002 (Press CTRL+C to quit)
+[03/26/26 21:50:47] INFO     Created new          streamable_http_manager.py:240
+                             transport with                                     
+                             session ID:                                        
+                             f4496974085741f79b53                               
+                             19073b3e8ee5                                       
+INFO:     127.0.0.1:34036 - "POST /mcp HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34040 - "POST /mcp HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:34048 - "GET /mcp HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34050 - "POST /mcp HTTP/1.1" 200 OK
+                    INFO     Processing request of type            server.py:720
+                             CallToolRequest                                    
+INFO:     127.0.0.1:53044 - "POST /mcp HTTP/1.1" 200 OK
+[03/26/26 21:50:52] INFO     Processing request of type            server.py:720
+                             ListToolsRequest                                   
+                    INFO     Terminating session:         streamable_http.py:779
+                             f4496974085741f79b5319073b3e                       
+                             8ee5                                               
+INFO:     127.0.0.1:53052 - "DELETE /mcp HTTP/1.1" 200 OK
+                    INFO     Created new          streamable_http_manager.py:240
+                             transport with                                     
+                             session ID:                                        
+                             032edfe3bc744d399f0d                               
+                             3f857263cdff                                       
+INFO:     127.0.0.1:53064 - "POST /mcp HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53080 - "POST /mcp HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:53092 - "GET /mcp HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53106 - "POST /mcp HTTP/1.1" 200 OK
+                    INFO     Processing request of type            server.py:720
+                             CallToolRequest                                    
+[03/26/26 21:50:57] INFO     HTTP Request: POST                  _client.py:1740
+                             https://api.gpugeek.com/v1/chat/com                
+                             pletions "HTTP/1.1 404 Not Found"                  
+[03/26/26 21:50:58] INFO     HTTP Request: POST                  _client.py:1740
+                             https://api.gpugeek.com/v1/chat/com                
+                             pletions "HTTP/1.1 404 Not Found"                  
+[03/26/26 21:50:59] INFO     HTTP Request: POST                  _client.py:1740
+                             https://api.gpugeek.com/v1/chat/com                
+                             pletions "HTTP/1.1 404 Not Found"                  
+[03/26/26 21:51:10] INFO     HTTP Request: POST                  _client.py:1740
+                             https://api.gpugeek.com/v1/chat/com                
+                             pletions "HTTP/1.1 200 OK"                         
+use gpt-4o to parse
+Attempt 1 failed: Error code: 404 - {'code': 404, 'message': 'gpt-4o is not found', 'requestId': '91ce6ce7-3cfb-421f-ba01-5a3f6aad05bf'}
+Attempt 2 failed: Error code: 404 - {'code': 404, 'message': 'gpt-4o is not found', 'requestId': '32987681-a966-4545-bb06-0f93b1b8b2ae'}
+Attempt 3 failed: Error code: 404 - {'code': 404, 'message': 'gpt-4o is not found', 'requestId': '7d6d7c6f-c732-4184-bad9-f537996f6eaa'}
+origin llm call failed, use DeepSeek/DeepSeek-V3-0324 to parse: llm_call_async failed after 3 retries.
+INFO:     127.0.0.1:44364 - "POST /mcp HTTP/1.1" 200 OK
+                    INFO     Processing request of type            server.py:720
+                             ListToolsRequest                                   
+                    INFO     Terminating session:         streamable_http.py:779
+                             032edfe3bc744d399f0d3f857263                       
+                             cdff                                               
+INFO:     127.0.0.1:44366 - "DELETE /mcp HTTP/1.1" 200 OK

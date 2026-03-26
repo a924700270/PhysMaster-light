@@ -114,7 +114,7 @@ class SupervisorOrchestrator:
 
             # ── First draft ──
             node_type = "draft"
-            augmented_description = self._call_supervisor_for_description(
+            augmented_description = self._call_supervisor(
                 subtask, node_type, description
             )
 
@@ -147,7 +147,7 @@ class SupervisorOrchestrator:
                 decision = evaluation.get("decision", "to_revise")
                 node_type = "draft" if decision == "to_redraft" else "revise"
 
-                augmented_description = self._call_supervisor_for_description(
+                augmented_description = self._call_supervisor(
                     subtask, node_type, description, last_evaluation=evaluation
                 )
 
@@ -254,7 +254,7 @@ class SupervisorOrchestrator:
         return result, node_record
 
     # ── Supervisor (description generation) ────────────────────────────
-    def _call_supervisor_for_description(
+    def _call_supervisor(
         self,
         subtask: Dict[str, Any],
         node_type: str,
@@ -285,7 +285,6 @@ class SupervisorOrchestrator:
                 user_prompt=prompt,
                 tools=self.kb_search_tools,
                 tool_functions=self._kb_tool_functions_simple("Supervisor"),
-                model_name="gpt-5",
             )
         except Exception:
             print("[Supervisor] call failed, using fallback description.")

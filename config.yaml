@@ -9,8 +9,7 @@ llm:
 pipeline:
   query_file: "instructions/test.txt"
   output_path: "outputs"
-  parallel_processes: 3
-  max_rounds: 24
+  max_rounds: 10
 
 # Clarifier settings
 clarifier:
@@ -25,12 +24,16 @@ skills:
 landau:
   library_enabled: true
   library: "LANDAU/library"
-  
-  workflow_enabled: true
-  workflow: "LANDAU/workflow"
 
-  prior_enabled: false
-  prior: "LANDAU/prior"
+  # Library MCP configuration
+  library_config:
+    mcp_url: "http://127.0.0.1:8002/mcp"  # MCP server endpoint
+    search_region: "us"
+    search_lang: "en"
+    parse_model: "DeepSeek/DeepSeek-V3-0324"
+
+  workflow_enabled: false
+  workflow: "LANDAU/workflow"
 
 visualization:
   enabled: true

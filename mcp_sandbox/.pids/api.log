@@ -1,0 +1,9 @@
+INFO:     Started server process [1962431]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:1234 (Press CTRL+C to quit)
+🔍 搜索请求: query='Python async programming'
+🔑 API key: '3ef356d929...'
+📊 原始结果类型: <class 'list'>
+INFO:     127.0.0.1:36142 - "POST /search HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37364 - "POST /fetch_web HTTP/1.1" 200 OK

@@ -1,0 +1,28 @@
+{
+    "gpt-4o":{
+        "url": "",
+        "authorization": "",
+        "retry_time": 3
+    },
+    "gpt-4.1-nano-2025-04-14": {
+        "url": "",
+        "authorization": "",
+        "retry_time": 3
+    },
+    "qwen-32b":{
+        "url": "",
+        "authorization": "",
+        "retry_time": 3,
+        "tool_link": ""
+    },
+    "GpuGeek/Qwen3-30B-A3B-Instruct-2507": {
+        "url": "",
+        "authorization": "",
+        "retry_time": 3
+    },
+    "DeepSeek/DeepSeek-V3-0324": {
+        "url": "",
+        "authorization": "",
+        "retry_time": 5
+    }
+}
