@@ -110,7 +110,7 @@ class Clarifier:
         return best
 
     def task_spec(self, user_query):
-        schema_path = Path(__file__).resolve().parent / "contract_template.json"
+        schema_path = Path(__file__).resolve().parent.parent / "utils/contract_template.json"
         if not schema_path.exists():
             raise FileNotFoundError(f"Contract template not found: {schema_path}")
         with schema_path.open("r", encoding="utf-8") as f:

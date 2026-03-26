@@ -7,16 +7,10 @@ llm:
 
 # Basics
 pipeline:
-  query_file: "instructions/CS_kernel_all_b_v23.txt"
+  query_file: "instructions/test.txt"
   output_path: "outputs"
   parallel_processes: 3
   max_rounds: 24
-
-mcts:
-  draft_expansion: 2
-  revise_expansion: 1
-  exploration_constant: 1.414
-  active_beam_width: 3
 
 # Clarifier settings
 clarifier:

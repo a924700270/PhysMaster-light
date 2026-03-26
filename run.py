@@ -77,8 +77,7 @@ def main(config_path: str = "config.yaml"):
     skills_cfg = cfg.get("skills", {})
     skills_enabled = bool(skills_cfg.get("enabled", True))
 
-    mcts_cfg = cfg.get("mcts", {})
-    vis_cfg = cfg.get("visualization",{})
+    vis_cfg = cfg.get("visualization", {})
 
     project_root = Path(__file__).resolve().parent
     library_root = (project_root / landau_cfg.get("library", "LANDAU/library")).resolve()
@@ -121,16 +120,12 @@ def main(config_path: str = "config.yaml"):
         task_dir=task_dir,
         processes=processes,
         max_rounds=max_rounds,
-        draft_expansion=mcts_cfg.get("draft_expansion", 2),
-        revise_expansion=mcts_cfg.get("revise_expansion", 2),
-        exploration_constant=mcts_cfg.get("exploration_constant", 1.414),
-        active_beam_width=mcts_cfg.get("active_beam_width", 0),
         landau_library_enabled=library_enabled,
         landau_prior_enabled=prior_enabled,
     )
 
-    mcts_result = supervisor.run()
-    trajectory = mcts_result.get("trajectory", []) or []
+    pipeline_result = supervisor.run()
+    trajectory = pipeline_result.get("trajectory", []) or []
 
     summarizer = TrajectorySummarizer(prompts_path="prompts/")
     summary_md_path = task_dir / "summary.md"
@@ -143,17 +138,17 @@ def main(config_path: str = "config.yaml"):
     summary_text = summary_md_path.read_text(encoding="utf-8")
     print("[Summrizer] Summary generated:", summary_md_path)
 
-    if vis_cfg.get("enabled",False):
+    if vis_cfg.get("enabled", False):
         vis_path = task_dir / "visualization.html"
         generate_vis(
             vis_path,
-            supervisor.tree,
+            trajectory=trajectory,
             task_description=structured_problem.get("task_description", ""),
             subtasks=supervisor.subtasks,
             summary=summary_text,
         )
-        print("[Visulization] visualization saved:", vis_path)
-    
+        print("[Visualization] visualization saved:", vis_path)
+
 
 if __name__ == "__main__":
     cfg_file = "config.yaml"
