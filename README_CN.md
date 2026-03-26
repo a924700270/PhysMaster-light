@@ -21,7 +21,7 @@
 
 ```bash
 git clone https://github.com/Kev1n-J1N/PhysMaster-light.git
-cd PHY_Master
+cd PhysMaster-light
 
 # 创建 conda 环境
 conda create -n phys python=3.10 -y
@@ -158,7 +158,7 @@ outputs/test/
 
 ### 技能系统
 
-技能系统为 Agent 提供特定领域的知识和求解流程。启用后，澄清器和求解器会根据问题内容自动加载相关技能。
+技能系统为 Agent 提供特定领域的知识和求解流程。启用后，求解器（Theoretician）会根据问题内容自动匹配并加载相关技能，以增强推理能力。
 
 #### 启用技能
 
@@ -261,10 +261,10 @@ landau:
 
 | 工具 | 说明 |
 |---|---|
-| `web_search` | 搜索物理参考资料 |
+| `web_search` | 搜索相关参考资料 |
 | `web_parse` | 解析网页并提取相关内容 |
 
-文献检索器使用 Streamable HTTP 传输协议与 MCP 服务器通信。每次工具调用会打开一个短生命周期的 MCP 会话，调用工具并返回解析结果。
+文献检索器通过 Streamable HTTP 传输协议与 MCP 服务器通信。每次工具调用会创建一个临时 MCP 会话，执行工具调用并返回解析结果。
 
 ---
 

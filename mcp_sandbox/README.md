@@ -1,6 +1,6 @@
 # MCP Sandbox
 
-[English](#mcp-sandbox) | [返回主目录](../README_CN.md)
+[返回主目录](../README_CN.md) | [Back to main](../README.md)
 
 PhysMaster 内置的 MCP (Model Context Protocol) 服务器，提供 `web_search` 和 `web_parse` 工具，用于在线文献检索与网页内容解析。
 
@@ -144,7 +144,7 @@ SANDBOX_PORT=9002 API_PORT=2234 ./start_all.sh
 ./start_all.sh restart
 ```
 
-> **注意**：本地启动 MCP 时需要保持终端运行（或使用 nohup/screen/tmux）。终止启动终端后 MCP 服务器将断开。
+> **注意**：`start_all.sh` 通过 `nohup` 在后台启动所有服务，关闭终端不会中断服务。如需停止服务，请使用 `./start_all.sh stop`。
 
 ---
 

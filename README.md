@@ -21,7 +21,7 @@ A lightweight AI agent pipeline for solving physics problems. PhysMaster decompo
 
 ```bash
 git clone https://github.com/Kev1n-J1N/PhysMaster-light.git
-cd PHY_Master
+cd PhysMaster-light
 
 # Create conda environment
 conda create -n phys python=3.10 -y
@@ -151,7 +151,7 @@ outputs/test/
 
 ### Skills System
 
-Skills provide domain-specific knowledge and problem-solving workflows to the agent. When enabled, the clarifier and solver automatically load relevant skills based on the problem content.
+Skills provide domain-specific knowledge and problem-solving workflows to the agent. When enabled, the solver (Theoretician) automatically matches and loads relevant skills based on the problem content to enhance its reasoning capabilities.
 
 #### Enable Skills
 
@@ -254,7 +254,7 @@ landau:
 
 | Tool | Description |
 |---|---|
-| `web_search` | Search the web for physics references |
+| `web_search` | Search the web for relevant references |
 | `web_parse` | Parse a web page and extract relevant content |
 
 The library retriever communicates with the MCP server using the Streamable HTTP transport protocol. Each tool call opens a short-lived MCP session, calls the tool, and returns the parsed result.
