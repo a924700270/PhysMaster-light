@@ -90,8 +90,6 @@ Using Liénard-Wiechert potentials, derive E(r, t) and B(r, t).
 ## 2. Energy
 Compute the Poynting vector and show there is no radiation.
 
-## 3. Relativistic Covariance
-Write the field tensor F^{μν} in the rest frame and apply a Lorentz boost.
 ```
 
 Set the query file path in `config.yaml`:
@@ -107,7 +105,6 @@ pipeline:
 |---|---|---|
 | `pipeline.query_file` | Path to the physics problem file | `instructions/test.txt` |
 | `pipeline.output_path` | Output directory | `outputs` |
-| `pipeline.parallel_processes` | Worker processes for theoretician | `3` |
 | `pipeline.max_rounds` | Max solver-critic iterations across all subtasks | `10` |
 | `clarifier.max_key_concpets` | Max key concepts the clarifier extracts | `5` |
 

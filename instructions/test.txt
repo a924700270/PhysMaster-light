@@ -11,11 +11,3 @@ Using Liénard-Wiechert potentials, derive \( \mathbf{E}(\mathbf{r}, t) \) and \
 Compute the Poynting vector \( \mathbf{S} = \frac{1}{\mu_0} \mathbf{E} \times \mathbf{B} \) and show \( \oint \mathbf{S} \cdot d\mathbf{a} = 0 \) (no radiation).
 
 Calculate the total field energy \( U_{\text{em}} = \int \frac{1}{2}\left(\epsilon_0 E^2 + \frac{1}{\mu_0}B^2\right) d^3r \). Introduce a finite charge radius \( a \) to regularize the divergence and derive the self-energy expression.
-
-## 3. Relativistic Covariance
-
-Write the field tensor \( F^{\mu\nu} \) in the charge's rest frame. Apply a Lorentz boost to obtain fields in the lab frame, verifying consistency with Part 1.
-
-## 4. Radiation (Bonus)
-
-For an accelerated charge, state the relativistic generalization of the Larmor formula for radiated power.
