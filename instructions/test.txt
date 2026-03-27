@@ -1,13 +1,15 @@
-# Radiation and Self-Energy of a Uniformly Moving Charge
+## Physics Problem — Ray Dynamics in a Gradient-Index Medium
 
-A point charge \( q \) moves with constant velocity \( \mathbf{v} = v\hat{z} \) in vacuum.
+A planar optical medium has a refractive index that varies with the transverse coordinate ( y ) according to
 
-## 1. Fields
+[
+n(y) = n_0 \left(1 - \frac{1}{2}\alpha y^2 \right), \qquad \alpha > 0
+]
 
-Using Liénard-Wiechert potentials, derive \( \mathbf{E}(\mathbf{r}, t) \) and \( \mathbf{B}(\mathbf{r}, t) \). Show that the acceleration field vanishes for uniform motion, and verify the fields reduce to the Lorentz-contracted Coulomb field.
+where ( n_0 ) and ( \alpha ) are constants. A monochromatic light ray propagates through this medium in the (x)-direction.
 
-## 2. Energy
+Using the principles of geometrical optics, treat the ray trajectory (y(x)) as the path that extremizes the optical path length.
 
-Compute the Poynting vector \( \mathbf{S} = \frac{1}{\mu_0} \mathbf{E} \times \mathbf{B} \) and show \( \oint \mathbf{S} \cdot d\mathbf{a} = 0 \) (no radiation).
+**Problem**
 
-Calculate the total field energy \( U_{\text{em}} = \int \frac{1}{2}\left(\epsilon_0 E^2 + \frac{1}{\mu_0}B^2\right) d^3r \). Introduce a finite charge radius \( a \) to regularize the divergence and derive the self-energy expression.
+Derive the differential equation governing the ray trajectory (y(x)) and show that, under the small-angle (paraxial) approximation, the ray satisfies a simple harmonic oscillator equation. From this result, determine the spatial oscillation period of the ray inside the medium in terms of ( \alpha ).

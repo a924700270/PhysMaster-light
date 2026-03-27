@@ -80,15 +80,21 @@ Create a text file with your physics problem. The file can contain LaTeX math no
 **Example** (`instructions/test.txt`):
 
 ```markdown
-# Radiation and Self-Energy of a Uniformly Moving Charge
+## Physics Problem — Ray Dynamics in a Gradient-Index Medium
 
-A point charge q moves with constant velocity v = v*z_hat in vacuum.
+A planar optical medium has a refractive index that varies with the transverse coordinate ( y ) according to
 
-## 1. Fields
-Using Liénard-Wiechert potentials, derive E(r, t) and B(r, t).
+[
+n(y) = n_0 \left(1 - \frac{1}{2}\alpha y^2 \right), \qquad \alpha > 0
+]
 
-## 2. Energy
-Compute the Poynting vector and show there is no radiation.
+where ( n_0 ) and ( \alpha ) are constants. A monochromatic light ray propagates through this medium in the (x)-direction.
+
+Using the principles of geometrical optics, treat the ray trajectory (y(x)) as the path that extremizes the optical path length.
+
+**Problem**
+
+Derive the differential equation governing the ray trajectory (y(x)) and show that, under the small-angle (paraxial) approximation, the ray satisfies a simple harmonic oscillator equation. From this result, determine the spatial oscillation period of the ray inside the medium in terms of ( \alpha ).
 
 ```
 

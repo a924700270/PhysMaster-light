@@ -29,7 +29,6 @@ class TrajectorySummarizer:
             summary_md = call_model_without_tools(
                 system_prompt=self.summarizer_system_prompt,
                 user_prompt=prompt,
-                model_name="gpt-5",
             ).strip()
             if summary_md:
                 return summary_md
