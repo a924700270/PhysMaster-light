@@ -111,7 +111,6 @@ pipeline:
 |---|---|---|
 | `pipeline.query_file` | Path to the physics problem file | `instructions/test.txt` |
 | `pipeline.output_path` | Output directory | `outputs` |
-| `pipeline.parallel_processes` | Worker processes for theoretician | `3` |
 | `pipeline.max_rounds` | Max solver-critic iterations across all subtasks | `10` |
 | `clarifier.max_key_concpets` | Max key concepts the clarifier extracts | `5` |
 
