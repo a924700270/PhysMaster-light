@@ -9,6 +9,7 @@ llm:
 pipeline:
   query_file: "instructions/test.txt"
   output_path: "outputs"
+  parallel_processes: 3
   max_rounds: 24
 
 # Clarifier settings

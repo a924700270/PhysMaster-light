@@ -111,6 +111,7 @@ pipeline:
 |---|---|---|
 | `pipeline.query_file` | 物理问题文件路径 | `instructions/test.txt` |
 | `pipeline.output_path` | 输出目录 | `outputs` |
+| `pipeline.parallel_processes` | 求解器并行进程数 | `3` |
 | `pipeline.max_rounds` | 所有子任务的最大迭代轮数 | `10` |
 | `clarifier.max_key_concpets` | 澄清器提取的最大关键概念数 | `5` |
 
