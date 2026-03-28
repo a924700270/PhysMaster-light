@@ -49,6 +49,7 @@ class SupervisorOrchestrator:
         prompts_path: str = "prompts/",
         landau_library_enabled: bool = True,
         landau_prior_enabled: bool = True,
+        config_path: str = 'config.yaml'
     ):
         self.structured_problem = structured_problem
         self.task_dir = task_dir
@@ -57,6 +58,7 @@ class SupervisorOrchestrator:
         self.prompts_path = Path(prompts_path)
         self.landau_library_enabled = bool(landau_library_enabled)
         self.landau_prior_enabled = bool(landau_prior_enabled)
+        self.config_path = config_path
         if self.landau_prior_enabled and PriorRetriever is None:
             print("[Supervisor] prior retriever unavailable; disable LANDAU prior search.")
             self.landau_prior_enabled = False
@@ -221,7 +223,7 @@ class SupervisorOrchestrator:
         if run_theo_node is None:
             raise RuntimeError("run_theo_node is unavailable.")
 
-        future = _GLOBAL_POOL.submit(run_theo_node, payload)
+        future = _GLOBAL_POOL.submit(run_theo_node, payload, self.config_path)
         try:
             node_output = future.result()
         except Exception as e:
@@ -279,6 +281,7 @@ class SupervisorOrchestrator:
                 user_prompt=prompt,
                 tools=self.kb_search_tools,
                 tool_functions=self._kb_tool_functions_simple("Supervisor"),
+                config_path=self.config_path
             )
         except Exception:
             print("[Supervisor] call failed, using fallback description.")
@@ -319,6 +322,7 @@ class SupervisorOrchestrator:
             user_prompt=prompt,
             tools=self.kb_search_tools,
             tool_functions=self._kb_tool_functions_simple("Critic"),
+            config_path=self.config_path
         )
 
         parsed = self._extract_json_object(response)

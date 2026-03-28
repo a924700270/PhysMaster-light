@@ -12,10 +12,11 @@ SYSTEM_PROMPT = load_prompt("prompts/clarifier_system_prompt.txt")
 USER_PROMPT = load_prompt("prompts/clarifier_prompt.txt")
 
 class Clarifier:
-    def __init__(self, config, workflow_enabled: bool = True):
+    def __init__(self, config, workflow_enabled: bool = True, config_path:str = 'config.yaml'):
         self.max_keys = config.get("max_key_concpets",5)
         self.workflow_dir = self._resolve_workflow_dir(config)
         self.workflow_enabled = bool(workflow_enabled)
+        self.config_path = config_path
         self._stopwords = {
             "a", "an", "and", "are", "as", "at", "be", "by", "for", "from",
             "in", "is", "it", "of", "on", "or", "that", "the", "this", "to",
@@ -137,6 +138,7 @@ class Clarifier:
         response = call_model_without_tools(
             system_prompt=system_prompt,
             user_prompt=user_prompt,
+            config_path=self.config_path
         )
 
         return response, schema

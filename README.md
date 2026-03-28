@@ -58,9 +58,22 @@ PhysMaster uses the OpenAI-compatible API format. Any provider that supports thi
 ### 3. Run
 
 ```bash
+# Activate environment
 conda activate phys
+
+# Default execution
 python run.py
+
+# Run with custom config file
+python run.py --cfg_file [path/to/config]
+# or use shorthand
+python run.py -c [path/to/config]
 ```
+Notes:
+
+* Replace the content in brackets [] with your actual path
+
+* --cfg_file and -c are equivalent; use either
 
 ---
 
