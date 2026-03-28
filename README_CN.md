@@ -1,21 +1,32 @@
+<div align="center">
+
 # PhysMaster-Light
+
+**🔬 AI 驱动的物理问题求解器**
+
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://python.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![OpenAI Compatible](https://img.shields.io/badge/API-OpenAI%20Compatible-412991?logo=openai&logoColor=white)](#2-配置-llm-api)
 
 [English](README.md)
 
-一个轻量级的 AI 物理求解 Agent Pipeline。PhysMaster 将复杂物理问题拆分为子任务，通过 LLM 驱动的推理迭代求解，并生成结构化的解答和可视化结果。
+一个轻量级的 AI 物理求解 Agent Pipeline。
+PhysMaster 将复杂物理问题拆分为子任务，通过 LLM 驱动的推理迭代求解，并生成结构化的解答和可视化结果。
+
+</div>
 
 ---
 
-## 目录
+## 📑 目录
 
-- [快速开始](#快速开始)
-- [基础使用](#基础使用)
-- [进阶功能](#进阶功能)
-- [可视化](#可视化)
+- [🚀 快速开始](#-快速开始)
+- [📖 基础使用](#-基础使用)
+- [⚡ 进阶功能](#-进阶功能)
+- [📊 可视化](#-可视化)
 
 ---
 
-## 快速开始
+## 🚀 快速开始
 
 ### 1. 克隆与环境配置
 
@@ -59,7 +70,7 @@ python run.py
 
 ---
 
-## 基础使用
+## 📖 基础使用
 
 在基础模式下，PhysMaster 以简单的 **问题澄清 → 求解 → 评估 → 总结** 流水线运行，无需启用任何进阶功能。推荐新手从此模式开始。
 
@@ -166,9 +177,9 @@ outputs/test/
 
 ---
 
-## 进阶功能
+## ⚡ 进阶功能
 
-### 技能系统
+### 🧠 技能系统
 
 技能系统为 Agent 提供特定领域的知识和求解流程。启用后，求解器（Theoretician）会根据问题内容自动匹配并加载相关技能，以增强推理能力。
 
@@ -206,7 +217,9 @@ LANDAU/skills/your_skill_name/
 └── SKILL.md
 ```
 
-**SKILL.md 格式：**
+<details>
+<summary>📄 <b>SKILL.md 格式</b>（点击展开）</summary>
+
 ```markdown
 ---
 name: "your_skill_name"
@@ -243,15 +256,17 @@ What this skill aims to achieve.
 - Constraint 1 ...
 ```
 
+</details>
+
 技能会在检测到相关问题时自动发现并加载。YAML frontmatter（`name` 和 `description`）用于匹配，完整的 Markdown 内容按需加载。
 
 ---
 
-### MCP 文献检索（网页搜索与解析）
+### 🔍 MCP 文献检索（网页搜索与解析）
 
 文献检索模块通过 MCP（Model Context Protocol）服务器提供网页搜索和内容解析功能。启用后，Supervisor 和 Critic 可以搜索网络参考资料并解析网页获取相关信息。
 
-> MCP 服务器的详细部署与配置说明请参阅 **[mcp_sandbox/README.md](mcp_sandbox/README.md)**。
+> 📘 MCP 服务器的详细部署与配置说明请参阅 **[mcp_sandbox/README.md](mcp_sandbox/README.md)**。
 
 #### 启用文献检索
 
@@ -280,7 +295,7 @@ landau:
 
 ---
 
-### 工作流模板
+### 📋 工作流模板
 
 工作流模板为特定类型的物理问题提供预定义的求解方法论。澄清器使用这些模板生成更结构化的子任务分解。
 
@@ -296,7 +311,7 @@ landau:
 
 ---
 
-## 可视化
+## 📊 可视化
 
 当 `visualization.enabled` 设为 `true` 时，PhysMaster 会生成求解过程的交互式 HTML 可视化。
 
@@ -316,6 +331,6 @@ visualization:
 
 ---
 
-## 许可
+## 📄 许可
 
 MIT

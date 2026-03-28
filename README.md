@@ -1,21 +1,32 @@
+<div align="center">
+
 # PhysMaster-Light
+
+**🔬 AI-Powered Physics Problem Solver**
+
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://python.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![OpenAI Compatible](https://img.shields.io/badge/API-OpenAI%20Compatible-412991?logo=openai&logoColor=white)](#2-configure-llm-api)
 
 [中文文档](README_CN.md)
 
-A lightweight AI agent pipeline for solving physics problems. PhysMaster decomposes complex physics problems into subtasks, solves them iteratively with LLM-powered reasoning, and produces structured solutions with optional visualization.
+A lightweight AI agent pipeline for solving physics problems.
+PhysMaster decomposes complex physics problems into subtasks, solves them iteratively with LLM-powered reasoning, and produces structured solutions with optional visualization.
+
+</div>
 
 ---
 
-## Table of Contents
+## 📑 Table of Contents
 
-- [Quick Start](#quick-start)
-- [Basic Usage](#basic-usage)
-- [Advanced Features](#advanced-features)
-- [Visualization](#visualization)
+- [🚀 Quick Start](#-quick-start)
+- [📖 Basic Usage](#-basic-usage)
+- [⚡ Advanced Features](#-advanced-features)
+- [📊 Visualization](#-visualization)
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 ### 1. Clone & Setup Environment
 
@@ -53,7 +64,7 @@ python run.py
 
 ---
 
-## Basic Usage
+## 📖 Basic Usage
 
 In the basic mode, PhysMaster works as a simple **Clarifier → Solver → Critic → Summarizer** pipeline without any advanced features. This is recommended for getting started.
 
@@ -157,9 +168,9 @@ outputs/test/
 
 ---
 
-## Advanced Features
+## ⚡ Advanced Features
 
-### Skills System
+### 🧠 Skills System
 
 Skills provide domain-specific knowledge and problem-solving workflows to the agent. When enabled, the solver (Theoretician) automatically matches and loads relevant skills based on the problem content to enhance its reasoning capabilities.
 
@@ -197,7 +208,9 @@ LANDAU/skills/your_skill_name/
 └── SKILL.md
 ```
 
-**SKILL.md format:**
+<details>
+<summary>📄 <b>SKILL.md format</b> (click to expand)</summary>
+
 ```markdown
 ---
 name: "your_skill_name"
@@ -234,15 +247,17 @@ What this skill aims to achieve.
 - Constraint 1 ...
 ```
 
+</details>
+
 Skills are automatically discovered and loaded when relevant problems are detected. The YAML frontmatter (`name` and `description`) is used for matching; the full markdown body is loaded on demand.
 
 ---
 
-### MCP Library (Web Search & Parse)
+### 🔍 MCP Library (Web Search & Parse)
 
 The library module provides web search and content parsing via an MCP (Model Context Protocol) server. When enabled, the supervisor and critic can search the web for reference materials and parse web pages for relevant information.
 
-> For detailed MCP server deployment and configuration, see **[mcp_sandbox/README.md](mcp_sandbox/README.md)**.
+> 📘 For detailed MCP server deployment and configuration, see **[mcp_sandbox/README.md](mcp_sandbox/README.md)**.
 
 #### Enable Library
 
@@ -271,7 +286,7 @@ The library retriever communicates with the MCP server using the Streamable HTTP
 
 ---
 
-### Workflow Templates
+### 📋 Workflow Templates
 
 Workflow templates provide predefined problem-solving methodologies for specific types of physics problems. The clarifier uses these templates to generate more structured subtask decompositions.
 
@@ -287,7 +302,7 @@ Workflow templates are YAML files stored in the `LANDAU/workflow/` directory. Ea
 
 ---
 
-## Visualization
+## 📊 Visualization
 
 When `visualization.enabled` is set to `true`, PhysMaster generates an interactive HTML visualization of the solving process.
 
@@ -307,6 +322,6 @@ It is recommended to download the HTML file locally and open it in a browser for
 
 ---
 
-## License
+## 📄 License
 
 MIT
