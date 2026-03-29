@@ -44,7 +44,7 @@ class SupervisorOrchestrator:
         self,
         structured_problem,
         task_dir: str,
-        processes: int = 2,
+        processes: int = 1,
         max_rounds: int = 8,
         prompts_path: str = "prompts/",
         landau_library_enabled: bool = True,

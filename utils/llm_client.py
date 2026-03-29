@@ -34,6 +34,7 @@ class LLMClient:
         self.client = OpenAI(
             api_key=str(llm_config["api_key"]),
             base_url=str(llm_config["base_url"]),
+            max_retries=3
         )
 
     def call_without_tools(

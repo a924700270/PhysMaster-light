@@ -124,7 +124,7 @@ def run_theo_node(payload: Dict[str, Any],config_path:str = 'config.yaml') -> Di
 
         theoretician = Theoretician(library_enabled=bool(payload.get("library_enabled", True)),config_path=config_path)
 
-        node_output_dir = Path(task_dir) / f"node_{node_id}"
+        node_output_dir = (Path(task_dir) / f"node_{node_id}").resolve()
         os.makedirs(node_output_dir, exist_ok=True)
 
         node_metadata = {
